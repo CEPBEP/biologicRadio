@@ -33,5 +33,4 @@ TODOs:
 
 - Find out correct signal conditioning for input audio;
 - Find out correct way to optimize DTW for amplitude envelopes;
-- Implement NLP algorithms;
-- Create class for generating samples based on wordlist (Google TTS for now).
+- Implement NLP algorithms.
