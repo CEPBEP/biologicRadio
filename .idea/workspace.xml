@@ -5,11 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d3058768-f2e8-4a19-93b7-6e9d57974a58" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/generator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dictionary_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/google_tts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dictionary.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dictionary.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/generator.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

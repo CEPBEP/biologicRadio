@@ -1,39 +1,41 @@
 import os
-from glob import glob
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
+import gzip
 
+from glob import glob
+from .dictionary_generator import DictionaryGenerator
 
 class Dictionary:
 
-    data = {}
+    data = None
 
-    root = ''
+    data_dir = ''
 
-    def __init__(self, root: str, init: bool = False):
+    def __init__(self, data_dir: str, generator: DictionaryGenerator, init: bool = False):
         super().__init__()
 
-        self.root = os.path.realpath(root)
+        self.data_dir = os.path.realpath(data_dir)
+        self.generator = generator
 
         if init:
+            self.generator.generate_word_samples()
             self.init()
         else:
-            fp = os.path.join(self.root, 'dataset.npz')
+            fp = os.path.join(self.data_dir, 'dataset.bin')
             if os.path.isfile(fp):
                 self.open(fp)
 
     def init(self):
-        self.data = {'input': [], 'refs': {}}
-        fp = os.path.join(self.root, 'words.json')
-        print(f'Reading labels from: {fp}..')
-
+        data = {}
 
         print('Reading reference audio files..')
         seen = []
-        for fp in glob(os.path.join(self.root, 'audio', '*.wav')):
+        for fp in glob(os.path.join(self.data_dir, 'audio', '*.wav')):
             label = os.path.basename(fp).split(',')[0]
-            self.data[label] = {}
+            data[label] = {}
 
             sound, sr = librosa.load(fp, mono=True)
             sound = librosa.util.normalize(sound)
@@ -50,59 +52,37 @@ class Dictionary:
             envelopes = []
             for split in splits:
                 ref = sound[split[0]:split[1]]
-                env = librosa.effects.feature.poly_features(y=ref, sr=sr, order=2)
                 sounds.append(ref)
-                envelopes.append(env)
+                envelopes.append(librosa.effects.feature.poly_features(y=ref, sr=sr, order=2))
 
-            self.data['refs'][label] = np.array({'sounds': sounds, 'envelopes': envelopes})
+            data[label] = {'sounds': sounds, 'envelopes': envelopes}
 
-        seen = []
-        print('Reading input audio files..')
-        for fp in glob(os.path.join(self.root, 'input', '**', '*aac.wav')):
-            if fp.find('entropy') + fp.find('peaks') + fp.find('processed') + fp.find('normalized') + fp.find('snippet') >= 0:
-                continue
-
-            sound, sr = librosa.load(fp, mono=True)
-            sound = librosa.util.normalize(sound)
-
-            hsh = hash(sound.tostring())
-            if hsh in seen:
-                continue
-            seen.append(hsh)
-
-            print(fp)
-
-            env = librosa.effects.feature.poly_features(y=sound, sr=sr, order=2)
-            self.data['input'].append(np.array({'sound': sound, 'envelope': env}))
-
-        fp = os.path.join(self.root, 'dataset.npz')
+        fp = os.path.join(self.data_dir, 'dataset.bin')
         print(f'Writing initial dataset to: {fp}..')
-        np.savez_compressed(fp, refs=self.data['refs'], input=self.data['input'])
-        self.data = self.data
+        with open(fp, 'wb') as fp:
+            zipped = gzip.compress(pickle.dumps(data), 9)
+            fp.write(zipped)
+
+        self.data = data
 
     def open(self, filename: str):
         print(f'Opening dataset: {filename}..')
 
-        npz = np.load(filename, allow_pickle=True)
-        self.data['refs'] = npz['refs']
-        self.data['input'] = npz['input']
+        fp = os.path.join(self.data_dir, 'dataset.bin')
+        with gzip.open(fp) as fp:
+            self.data = pickle.loads(fp.read())
 
-        print(self.data['refs'][0])
-
-        ref_env = self.data['refs'][0]['Computer'][0]['envelopes'][0]
-        snd_env = self.data['input'][0]['envelope']
-
-        plt.figure(1)
-
-        plt.subplot(211)
-        t = np.linspace(0., ref_env.size / 22050, ref_env.size)
-        plt.plot(t, ref_env)
-
-        plt.subplot(212)
-        t = np.linspace(0., snd_env.size / 22050, snd_env.size)
-        plt.plot(t, snd_env)
-
-        plt.show()
+        # plt.figure(1)
+        #
+        # plt.subplot(211)
+        # t = np.linspace(0., ref_env.size / 22050, ref_env.size)
+        # plt.plot(t, ref_env)
+        #
+        # plt.subplot(212)
+        # t = np.linspace(0., snd_env.size / 22050, snd_env.size)
+        # plt.plot(t, snd_env)
+        #
+        # plt.show()
 
         print(self.data)
 

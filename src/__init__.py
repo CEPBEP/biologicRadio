@@ -1,5 +1,5 @@
 from .classifier import Classifier
 from .dictionary import Dictionary
-from .generator import Generator
+from .dictionary_generator import DictionaryGenerator
 
-__all__ = ['Classifier', 'Dictionary', 'Generator']
+__all__ = ['Classifier', 'Dictionary', 'DictionaryGenerator']
