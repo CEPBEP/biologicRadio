@@ -1,5 +1,9 @@
-import numpy as np
 import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+import soundfile
+
+from scipy.signal import hilbert, savgol_filter
 
 from .dictionary import Dictionary
 
@@ -8,16 +12,19 @@ class Classifier:
     def __init__(self, dictionary: Dictionary):
         super().__init__()
 
-        self.dictionary = dictionary
+        self.dictionary: Dictionary = dictionary
 
     def label_words(self, filename: str):
-        sound, sr = librosa.load(filename, mono=True)
+        sound, sr = librosa.load(filename, mono=True, sr=24000)
         sound = librosa.util.normalize(sound)
-        env = librosa.effects.feature.poly_features(y=sound, sr=sr, order=2)
+        inst_ampl = np.abs(hilbert(sound))
+        envelope = savgol_filter(inst_ampl, 1024, 2)
 
-        scores = []
-        for ref in self.dictionary.refs:
-            scores.append(self.match_word(env, ref))
+        soundfile.write(f'{filename}-envelope.wav', envelope, samplerate=int(sr))
+
+        # scores = []
+        # for item in self.dictionary.data().items():
+        #     scores.append(self.match_word(envelope, item))
 
     @staticmethod
     def match_word(database: np.ndarray, sample: list):
